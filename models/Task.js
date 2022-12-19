@@ -11,6 +11,8 @@ var TaskSchema = new mongoose.Schema({
   multipleFilePath: [{ type: Array, requre: false }],
   // multiple files path store in database End
 
+  //column_title or TASK_STATUS..
+  column_title: { type: String, require: false },
   expireAt: { type: Date, required: false },
   label: { type: String, required: false },
   labelType: {
@@ -33,6 +35,8 @@ TaskSchema.methods.joiValidate = (obj) => {
     multipleFilePath: Joi.array(),
     // multiple files path store in database End
 
+    //column_title or TASK_STATUS..
+    column_title: Joi.string(),
     expireAt: Joi.date(),
     label: Joi.string().min(3).max(15),
     labelType: Joi.string().valid(

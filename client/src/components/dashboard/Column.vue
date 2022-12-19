@@ -46,7 +46,8 @@
 
     <!-- Column Body -->
     <template>
-      <Task :tasks="column.tasks" :column_id="column._id" :customization="customization" />
+      <Task :tasks="column.tasks" :column_title="getColumnTitle" :column_id="column._id"
+        :customization="customization" />
     </template>
     <!-- End Of Column Body -->
 
@@ -121,13 +122,13 @@
 import eventBus from "../../eventBus";
 import Task from "./Task";
 export default {
-  props: ["customization", "column", "column_title"],
+  props: ["customization", "column",],
   components: {
     Task
   },
   data() {
     return {
-
+      getColumnTitle: this.column.title,
       multipleFileSelect: [],
       filePath: '',
       uploadMsg: '',
@@ -159,7 +160,6 @@ export default {
         title: "",
         description: '',
         selectedFile: '',
-
         label: "",
         labelType: null,
         expireAt: null,
@@ -253,21 +253,20 @@ export default {
     createNewTask() {
 
       let {
-        // selectedFile,
         title,
         description,
         label,
         labelType,
         expireAt,
         column_id,
-        isLabeled
+        isLabeled,
       } = this.new_task;
 
       let multipleFileName = this.multipleFileName
       let multipleFilePath = this.multipleFilePath
+      let column_title = this.getColumnTitle;
 
-
-      let data = { title, column_id, description, multipleFileName, multipleFilePath };
+      let data = { title, column_id, description, multipleFileName, multipleFilePath, column_title };
       if (column_id !== null) {
         if (expireAt !== null) {
           expireAt = new Date(expireAt);
@@ -345,10 +344,10 @@ export default {
       return require(`../../assets/svg/${icon}.svg`);
     },
     updateColumnTitle(column_id) {
-
+      let title = this.columns.title;
       this.edit_component.id_for_title = null;
       this.$http
-        .put("/user/columns", { column_id })
+        .put("/user/columns", { column_id, title })
         .then(res => {
           console.log(res);
           if (res.data.status === true) {

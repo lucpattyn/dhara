@@ -407,7 +407,17 @@ router.post("/columns", isLoggedIn, async (req, res, next) => {
 // Update Column
 router.put("/columns", isLoggedIn, async (req, res, next) => {
   try {
-    console.log(req.body.title);
+    await doc.useServiceAccountAuth({
+      client_email: credential.client_email,
+      private_key: credential.private_key,
+    });
+    await doc.loadInfo();
+    const sheets = doc.sheetsByIndex[0];
+
+    sheets.addRow({
+      column_title: req.body.title,
+    });
+
     if (req.body.column_id) {
       // Check user specified column id
       if (mongoose.Types.ObjectId.isValid(req.body.column_id)) {
@@ -628,19 +638,22 @@ router.get("/columns", isLoggedIn, async (req, res, next) => {
 // Create Tasks
 router.post("/tasks", isLoggedIn, async (req, res, next) => {
   try {
-    let { title, description, label, labelType, multipleFilePath, expireAt } =
-      req.body;
+    let {
+      title,
+      description,
+      label,
+      labelType,
+      multipleFilePath,
+      expireAt,
+      column_id,
+      column_title,
+    } = req.body;
 
-    console.log(req.body);
     const mappedMultipleFilePath = multipleFilePath
       .map((item) => item.slice(8))
       .join(";");
 
     const arrayToStrFilesPath = mappedMultipleFilePath.toString();
-
-    // const doc = new GoogleSpreadsheet(
-    //   "1324fN4Flg4ICUY_EM51Loa90YXRjkJq5pG__sJ2BB74"
-    // );
 
     await doc.useServiceAccountAuth({
       client_email: credential.client_email,
@@ -695,11 +708,13 @@ router.post("/tasks", isLoggedIn, async (req, res, next) => {
           {
             task_id: task._id,
             title: title,
-            description: description || undefined,
-            label: label || undefined,
-            labelType: labelType || undefined,
-            expiry_date: expireAt || undefined,
-            multipleFilePath: arrayToStrFilesPath || undefined,
+            description: description,
+            label: label,
+            labelType: labelType,
+            expiry_date: expireAt,
+            multipleFilePath: arrayToStrFilesPath,
+            column_id: column_id,
+            Status: column_title,
           },
         ]);
 
@@ -898,23 +913,27 @@ router.post("/removeFromColumn", isLoggedIn, async (req, res, next) => {
 
 // Add existing task to column
 router.post("/addToColumn", isLoggedIn, async (req, res, next) => {
-  const column_id = req.body.column_id;
-
   try {
-    let { column_id, task_id } = req.body;
+    let { column_id, task_id, column_title } = req.body;
 
     await doc.useServiceAccountAuth({
       client_email: credential.client_email,
       private_key: credential.private_key,
     });
-
     await doc.loadInfo();
 
+    // add column_id and status in google sheetes -- start
     const sheets = doc.sheetsByIndex[0];
-
-    await sheets.addRow({
-      column_id: column_id,
-    });
+    var rows = await sheets.getRows();
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i].task_id === task_id) {
+        rows[i].column_id = column_id;
+        rows[i].Status = column_title;
+        await rows[i].save();
+        break;
+      }
+    }
+    // add column_id and status in google sheetes -- start
 
     if (column_id && mongoose.Types.ObjectId.isValid(column_id)) {
       if (task_id && mongoose.Types.ObjectId.isValid(task_id)) {

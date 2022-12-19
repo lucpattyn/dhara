@@ -3,7 +3,7 @@
     <draggable class="list-group text-left mt-14 container" :list="tasks" style="cursor:pointer; min-height: 190px;"
       group="people" ghost-class="ghost" @change="changed(column_id, $event)" :animation="200">
 
-      <div v-for="(element) in tasks" :key="element" class="full-card-body" :class="getTaskCustomization"
+      <div v-for="(element, index) in tasks" :key="index" class="full-card-body" :class="getTaskCustomization"
         :style="getTaskHeight(element)"
         @contextmenu.prevent.stop="e => { element['column_id'] = column_id; taskHandle($event, element) }">
 
@@ -52,8 +52,6 @@
                 v-bind:href="'http://127.0.0.1:3000/multipleFiles/' + filePath" target="_black" class="file-path"> {{
                     (index + 1)
                 }} . {{ filePath[0].slice(8) }} </a>
-
-
             </li>
           </ul>
         </div>
@@ -78,7 +76,7 @@ export default {
 
     }
   },
-  props: ["tasks", "column_id", "customization"],
+  props: ["tasks", "column_id", "customization", "column_title"],
   components: {
     draggable
   },
@@ -110,8 +108,9 @@ export default {
 
       if (evt.added) {
         let task_id = evt.added.element._id;
+        let column_title = this.column_title;
         this.$http
-          .post("/user/addToColumn", { task_id, column_id, })
+          .post("/user/addToColumn", { task_id, column_id, column_title })
           .then(res => {
 
             console.log(res.data);
