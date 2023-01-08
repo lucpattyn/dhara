@@ -28,14 +28,19 @@
       <i class="fas fa-trash p-1" @click="deleteProject"></i>
     </span>
 
-    <div>
+    <span>
       <a class="google-sheet"
         href="https://docs.google.com/spreadsheets/d/1324fN4Flg4ICUY_EM51Loa90YXRjkJq5pG__sJ2BB74/edit#gid=62909436"
         target="_blank">GOOGLE SHEET LINK</a>
-    </div>
+    </span>
 
     <i class="fas fa-cog text-white float-right mr-3 mt-3" style="font-size: 25px;" v-b-toggle.sidebar-1></i>
-
+    <div>
+      <span class="add-user ml-4">
+        <input type="gmail" v-model="addUserGmail" class="add-user-input" required>
+        <button class="btn btn-primary ml-2" @click="addUser">add user</button>
+      </span>
+    </div>
   </div>
 </template>
 
@@ -44,9 +49,11 @@
 import Multiselect from "vue-multiselect";
 import eventBus from "../../eventBus";
 export default {
-  props: ["projects"],
+  props: ["projects", 'loadedProjectId'],
   data() {
     return {
+      addUserGmail: '',
+      project_id: '',
       isEditing: false
     };
   },
@@ -54,8 +61,21 @@ export default {
     Multiselect
   },
   methods: {
+    addUser() {
+      if (!this.addUserGmail) {
+        return false
+      }
+      let data = {
+        addUserGmail: this.addUserGmail,
+        project_id: this.loadedProjectId
+      }
+      this.$http.post('/user/addUser', data)
+        .then(res => console.log(res));
+      this.addUserGmail = ''
+    },
     projectSelected(selectedOption) {
-      eventBus.$emit("load-project-with-id", selectedOption._id); // load project
+      eventBus.$emit("load-project-with-id", selectedOption._id);// load project
+      this.project_id = selectedOption._id;
     },
     createProject() {
       eventBus.$emit("create-project");
@@ -146,10 +166,28 @@ export default {
 </script>
 
 <style scoped>
-/* .google-sheet{
- float: right;
- margin-right: 150px;
- margin-top: -20px; */
-/* color: black; 
-} */
+.google-sheet {
+  color: red;
+  margin-left: 10rem;
+}
+
+
+.add-user-input {
+  outline: none;
+  padding: 5px;
+}
+
+.users-selected {
+  width: 200px;
+  font-family: Arial, Helvetica, sans-serif;
+
+  padding: 8px;
+}
+
+.users-selected>.add-user-option {
+  font-size: 15px;
+  font-family: Arial, Helvetica, sans-serif;
+  color: red;
+
+}
 </style>

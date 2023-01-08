@@ -21,7 +21,6 @@
             {{ element.title }}
           </p>
         </div>
-
         <div class="description" v-show="element.description">
           <p style="">
             {{ element.description }}
@@ -73,7 +72,8 @@ import eventBus from "../../eventBus";
 export default {
   data() {
     return {
-
+      // user_email: '',
+      // users: [],
     }
   },
   props: ["tasks", "column_id", "customization", "column_title"],

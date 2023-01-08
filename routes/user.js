@@ -72,7 +72,19 @@ router.post("/multipleFileUpload", (req, res) => {
   });
 });
 
-// DELETE FILES FROM MECHINE
+// add users in project
+
+router.post("/addUser", isLoggedIn, async (req, res, next) => {
+  const { addUserGmail, project_id } = req.body;
+  const user = await User.findOneAndUpdate(
+    { email: addUserGmail },
+    {
+      $push: {
+        projects: project_id,
+      },
+    }
+  );
+});
 
 // Create Projects
 router.post("/projects", isLoggedIn, async (req, res, next) => {
@@ -86,6 +98,7 @@ router.post("/projects", isLoggedIn, async (req, res, next) => {
       });
     } else {
       project = await project.save(req.body); // Save project to database
+
       await User.findByIdAndUpdate(
         req.user._id,
         {
@@ -734,7 +747,7 @@ router.post("/tasks", isLoggedIn, async (req, res, next) => {
       });
     }
   } catch (err) {
-    console.log(err);
+    console.log("error", err);
     res.status(500).json({ status: false, message: err }); // If any error occurs
   }
 });

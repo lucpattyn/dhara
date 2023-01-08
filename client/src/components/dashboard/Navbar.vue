@@ -14,7 +14,7 @@
           <b-nav-item-dropdown right>
             <!-- Using 'button-content' slot -->
             <template v-slot:button-content>
-              <em>{{user_email}}</em>
+              <em>{{ user_email }}</em>
             </template>
             <b-dropdown-item @click="logout()">Sign Out</b-dropdown-item>
           </b-nav-item-dropdown>
@@ -45,4 +45,5 @@ export default {
 </script>
 
 <style>
+
 </style>
