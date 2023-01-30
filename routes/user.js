@@ -7,6 +7,8 @@ const { Column } = require("../models/Column");
 const { Task } = require("../models/Task");
 const mongoose = require("mongoose");
 const limitations = require("../limitations");
+const multer = require("multer");
+const path = require("path");
 
 // Create Projects
 router.post("/projects", isLoggedIn, async (req, res, next) => {
@@ -14,12 +16,10 @@ router.post("/projects", isLoggedIn, async (req, res, next) => {
     let project = new Project(req.body); // Create project instance
     await project.joiValidate(req.body); // Wait for validation
     if (req.user.projects.length >= limitations.PROJECT_COUNT_PER_USER) {
-      res
-        .status(429)
-        .json({
-          status: false,
-          message: `Due to limitations users cannot create more than ${limitations.PROJECT_COUNT_PER_USER} projects.`,
-        });
+      res.status(429).json({
+        status: false,
+        message: `Due to limitations users cannot create more than ${limitations.PROJECT_COUNT_PER_USER} projects.`,
+      });
     } else {
       project = await project.save(req.body); // Save project to database
       await User.findByIdAndUpdate(
@@ -158,12 +158,10 @@ router.delete("/projects", isLoggedIn, async (req, res, next) => {
             );
             res.status(200).json({ status: true, result: deletedProject });
           } else {
-            res
-              .status(500)
-              .json({
-                status: true,
-                result: "Error occurred during delete operation",
-              });
+            res.status(500).json({
+              status: true,
+              result: "Error occurred during delete operation",
+            });
           }
         } else {
           res
@@ -219,12 +217,10 @@ router.put("/projects", isLoggedIn, async (req, res, next) => {
                 { $set: req.body },
                 { new: true }
               );
-              res
-                .status(200)
-                .json({
-                  status: true,
-                  message: "Project successfully updated.",
-                });
+              res.status(200).json({
+                status: true,
+                message: "Project successfully updated.",
+              });
             }
           }
         } else {
@@ -271,12 +267,10 @@ router.post("/columns", isLoggedIn, async (req, res, next) => {
         } else {
           // If project exists
           if (project.columns.length >= limitations.COLUMN_COUNT_PER_PROJECT) {
-            res
-              .status(429)
-              .json({
-                status: false,
-                message: `Due to limitations projects cannot contains more than ${limitations.COLUMN_COUNT_PER_PROJECT} columns.`,
-              });
+            res.status(429).json({
+              status: false,
+              message: `Due to limitations projects cannot contains more than ${limitations.COLUMN_COUNT_PER_PROJECT} columns.`,
+            });
           } else {
             column = await column.save(req.body); // Save column to database
             await Project.findByIdAndUpdate(
@@ -295,12 +289,10 @@ router.post("/columns", isLoggedIn, async (req, res, next) => {
           .json({ status: false, message: "Can't mutate that project." });
       }
     } else {
-      res
-        .status(400)
-        .json({
-          status: false,
-          message: "project_id is undefined or malformed.",
-        }); // Project id is undefined or malformed
+      res.status(400).json({
+        status: false,
+        message: "project_id is undefined or malformed.",
+      }); // Project id is undefined or malformed
     }
   } catch (err) {
     res.status(500).json({ status: false, message: err }); // If any error occurs
@@ -338,12 +330,10 @@ router.put("/columns", isLoggedIn, async (req, res, next) => {
             .status(200)
             .json({ status: true, message: "Column successfully updated." });
         } else {
-          res
-            .status(403)
-            .json({
-              status: false,
-              message: "Column not exists or cannot be mutated",
-            });
+          res.status(403).json({
+            status: false,
+            message: "Column not exists or cannot be mutated",
+          });
         }
       } else {
         // If column id is malformed
@@ -412,28 +402,22 @@ router.delete("/columns", isLoggedIn, async (req, res, next) => {
                   );
                   res.status(200).json({ status: true, result: deletedColumn });
                 } else {
-                  res
-                    .status(500)
-                    .json({
-                      status: true,
-                      result: "Error occurred during delete operation",
-                    });
+                  res.status(500).json({
+                    status: true,
+                    result: "Error occurred during delete operation",
+                  });
                 }
               } else {
-                res
-                  .status(403)
-                  .json({
-                    status: false,
-                    message: "Can't mutate that column and its objects.",
-                  });
+                res.status(403).json({
+                  status: false,
+                  message: "Can't mutate that column and its objects.",
+                });
               }
             } else {
-              res
-                .status(403)
-                .json({
-                  status: false,
-                  message: "Can't mutate that project and its objects.",
-                });
+              res.status(403).json({
+                status: false,
+                message: "Can't mutate that project and its objects.",
+              });
             }
           } else {
             res
@@ -541,20 +525,16 @@ router.post("/tasks", isLoggedIn, async (req, res, next) => {
           .status(200)
           .json({ status: true, message: "Task successfully created." });
       } else {
-        res
-          .status(403)
-          .json({
-            status: false,
-            message: "Column not exists or cannot be mutated",
-          });
+        res.status(403).json({
+          status: false,
+          message: "Column not exists or cannot be mutated",
+        });
       }
     } else {
-      res
-        .status(400)
-        .json({
-          status: false,
-          message: "column_id is undefined or malformed.",
-        });
+      res.status(400).json({
+        status: false,
+        message: "column_id is undefined or malformed.",
+      });
     }
   } catch (err) {
     res.status(500).json({ status: false, message: err }); // If any error occurs
@@ -602,28 +582,22 @@ router.delete("/tasks", isLoggedIn, async (req, res, next) => {
                   );
                   res.status(200).json({ status: true, result: deletedTask });
                 } else {
-                  res
-                    .status(500)
-                    .json({
-                      status: true,
-                      result: "Error occurred during delete operation",
-                    });
+                  res.status(500).json({
+                    status: true,
+                    result: "Error occurred during delete operation",
+                  });
                 }
               } else {
-                res
-                  .status(403)
-                  .json({
-                    status: false,
-                    message: "Task not exists or cannot be mutated",
-                  });
+                res.status(403).json({
+                  status: false,
+                  message: "Task not exists or cannot be mutated",
+                });
               }
             } else {
-              res
-                .status(403)
-                .json({
-                  status: false,
-                  message: "Column not exists or cannot be mutated",
-                });
+              res.status(403).json({
+                status: false,
+                message: "Column not exists or cannot be mutated",
+              });
             }
           } else {
             res
@@ -682,43 +656,33 @@ router.post("/removeFromColumn", isLoggedIn, async (req, res, next) => {
               { $pull: { tasks: task_id } },
               { new: true, upsert: true }
             );
-            res
-              .status(200)
-              .json({
-                status: true,
-                message: "Task successfully removed from specified column.",
-              });
+            res.status(200).json({
+              status: true,
+              message: "Task successfully removed from specified column.",
+            });
           } else {
-            res
-              .status(403)
-              .json({
-                status: false,
-                message: "Task not exists or cannot be mutated",
-              });
+            res.status(403).json({
+              status: false,
+              message: "Task not exists or cannot be mutated",
+            });
           }
         } else {
-          res
-            .status(403)
-            .json({
-              status: false,
-              message: "Column not exists or cannot be mutated",
-            });
+          res.status(403).json({
+            status: false,
+            message: "Column not exists or cannot be mutated",
+          });
         }
       } else {
-        res
-          .status(400)
-          .json({
-            status: false,
-            message: "task_id is not specified or malformed",
-          });
+        res.status(400).json({
+          status: false,
+          message: "task_id is not specified or malformed",
+        });
       }
     } else {
-      res
-        .status(400)
-        .json({
-          status: false,
-          message: "column_id is not specified or malformed",
-        });
+      res.status(400).json({
+        status: false,
+        message: "column_id is not specified or malformed",
+      });
     }
   } catch (err) {
     res.status(500).json({ status: false, message: err }); // If any error occurs
@@ -749,39 +713,92 @@ router.post("/addToColumn", isLoggedIn, async (req, res, next) => {
             { $push: { tasks: task_id } },
             { new: true, upsert: true }
           );
-          res
-            .status(200)
-            .json({
-              status: true,
-              message: "Task successfully added to specified column.",
-            });
+          res.status(200).json({
+            status: true,
+            message: "Task successfully added to specified column.",
+          });
         } else {
-          res
-            .status(403)
-            .json({
-              status: false,
-              message: "Column not exists or cannot be mutated",
-            });
+          res.status(403).json({
+            status: false,
+            message: "Column not exists or cannot be mutated",
+          });
         }
       } else {
-        res
-          .status(400)
-          .json({
-            status: false,
-            message: "task_id is not specified or malformed",
-          });
+        res.status(400).json({
+          status: false,
+          message: "task_id is not specified or malformed",
+        });
       }
     } else {
-      res
-        .status(400)
-        .json({
-          status: false,
-          message: "column_id is not specified or malformed",
-        });
+      res.status(400).json({
+        status: false,
+        message: "column_id is not specified or malformed",
+      });
     }
   } catch (err) {
     res.status(500).json({ status: false, message: err }); // If any error occurs
   }
 });
+
+// FILE  UPLOAD FUNCTION START...
+const storages = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "./uploads/");
+  },
+  filename: (req, file, cb) => {
+    const fileExt = path.extname(file.originalname);
+    const filename =
+      file.originalname
+        .replace(fileExt, "")
+        .toLowerCase()
+        .split(" ")
+        .join("-") +
+      "-" +
+      Date.now();
+    cb(null, filename + fileExt);
+  },
+});
+
+const maxSizes = 1 * 1000 * 1000;
+
+let uploads = multer({
+  storage: storages,
+  limits: {
+    fieldSize: maxSizes,
+  },
+  fileFilter: (req, file, cb) => {
+    if (
+      file.mimetype === "image/jpeg" ||
+      file.mimetype === "image/png" ||
+      file.mimetype === "image/jpg"
+    ) {
+      cb(null, true);
+    } else {
+      cb(new Error("only .jpeg, .png or .jpg file formate allowed!"));
+    }
+  },
+}).fields([
+  {
+    name: "images",
+    maxCount: 20,
+  },
+]);
+
+// FILE  UPLOAD FUNCTION END...
+
+// FILE  UPLOAD ROUTE START...
+
+router.post("/uploadFiles", isLoggedIn, (req, res) => {
+  uploads(req, res, (err) => {
+    if (err) {
+      console.log("err", err);
+    } else {
+      console.log(req.files);
+      res.status(200).json({ file: req.files.images });
+    }
+  });
+});
+
+// FILE  UPLOAD ROUTE END...
 
 module.exports = router;

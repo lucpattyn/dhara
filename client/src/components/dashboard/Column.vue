@@ -64,6 +64,20 @@
             </div>
           </b-form-group>
           <!-- description end -->
+
+
+          <!-- file Upload Start  -->
+
+          <div class="form-group">
+            <b-form-group label="upload file" class="text-left bold">
+              <input type="file" multiple class="form-control-file" name="images" id="" v-on:change="fileSelected">
+            </b-form-group>
+            <button type="submit" @click="uploadFiles" class="btn btn-primary">Submit</button>
+          </div>
+          <p v-if="isFileUploaded">{{ fileUploadMessage }}</p>
+
+          <!-- file Upload End  -->
+
           <b-form-group label="Expiration Date (optional)" class="text-left">
             <b-form-datepicker v-model="new_task.expireAt" class="mb-2" size="sm"></b-form-datepicker>
           </b-form-group>
@@ -113,6 +127,10 @@ export default {
   },
   data() {
     return {
+      selectedFile: [],
+      filePath: [],
+      isFileUploaded: false,
+      fileUploadMessage: 'DONE',
       available_icons: [
         "todo",
         "inprogress",
@@ -187,6 +205,30 @@ export default {
     }
   },
   methods: {
+
+    fileSelected(event) {
+      for (let i = 0; i < event.target.files.length; i++) {
+        this.selectedFile.push(event.target.files[i])
+      }
+    },
+
+    uploadFiles() {
+      const files = this.selectedFile;
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        formData.append('images', files[i], files[i].name)
+      }
+
+      this.$http.post('/user/uploadFiles', formData).then(res => {
+        if (res) {
+          for (let i = 0; i < res.data.file.length; i++) {
+            this.filePath.push(res.data.file[i].path);
+          }
+          this.isFileUploaded = true
+        }
+      });
+    },
+
     createNewTask() {
       let {
         title,
@@ -197,7 +239,8 @@ export default {
         column_id,
         isLabeled
       } = this.new_task;
-      let data = { title, description, column_id };
+      const { filePath } = this;
+      let data = { title, description, filePath, column_id };
       if (column_id !== null) {
         if (expireAt !== null) {
           expireAt = new Date(expireAt);
@@ -215,6 +258,7 @@ export default {
           .post("/user/tasks", data)
           .then(res => {
             if (res.data.status === true) {
+              this.isFileUploaded = false;
               this.$swal({
                 position: "bottom-end",
                 icon: "success",

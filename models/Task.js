@@ -5,6 +5,7 @@ const Joi = require("joi");
 var TaskSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, require: false },
+  filePath: { type: Array, require: false },
   expireAt: { type: Date, required: false },
   label: { type: String, required: false },
   labelType: {
@@ -21,6 +22,7 @@ TaskSchema.methods.joiValidate = (obj) => {
   const taskSchema = Joi.object({
     title: Joi.string().min(3).max(60).required(),
     description: Joi.string(),
+    filePath: Joi.array(),
     column_id: Joi.string(),
     expireAt: Joi.date(),
     label: Joi.string().min(3).max(15),
