@@ -156,6 +156,24 @@ router.delete("/projects", isLoggedIn, async (req, res, next) => {
               { $pull: { projects: req.query.project_id } },
               { new: true, upsert: true }
             );
+
+            // delete Project id from other Users projects -- start
+            User.updateMany(
+              {},
+              {
+                $pull: {
+                  projects: req.query.project_id,
+                },
+              },
+              function (err) {
+                if (err) {
+                  console.log("Error:", err);
+                }
+              }
+            );
+
+            // delete Project id from other Users projects -- end
+
             res.status(200).json({ status: true, result: deletedProject });
           } else {
             res.status(500).json({
@@ -498,7 +516,6 @@ router.get("/columns", isLoggedIn, async (req, res, next) => {
 // Create Tasks
 router.post("/tasks", isLoggedIn, async (req, res, next) => {
   try {
-    console.log(req.body);
     if (
       req.body.column_id &&
       mongoose.Types.ObjectId.isValid(req.body.column_id)
@@ -793,12 +810,113 @@ router.post("/uploadFiles", isLoggedIn, (req, res) => {
     if (err) {
       console.log("err", err);
     } else {
-      console.log(req.files);
       res.status(200).json({ file: req.files.images });
     }
   });
 });
 
 // FILE  UPLOAD ROUTE END...
+
+// add User in Project Route -- Start
+
+router.post("/addUserInProject", isLoggedIn, async (req, res) => {
+  try {
+    let { emailForAddUserInProject, currentProjectId } = req.body.data;
+    const id = mongoose.Types.ObjectId(currentProjectId);
+    const user = await User.findOne({ email: emailForAddUserInProject });
+    if (user) {
+      if (user.projects.includes(id)) {
+        return res.json({
+          status: false,
+          message: "User Already assigned in this project",
+        });
+      } else {
+        user._doc.projects.push(id);
+        user.save();
+        await Project.findByIdAndUpdate(
+          { _id: currentProjectId },
+          {
+            $push: {
+              assignedUserInProject: emailForAddUserInProject,
+            },
+          }
+        );
+        res.status(200).json({
+          status: true,
+          message: ` "${emailForAddUserInProject}" this User assign in this Project`,
+        });
+      }
+    }
+    if (!user) {
+      return res.json({
+        status: false,
+        message: "User Doesn't exist",
+      });
+    }
+  } catch (err) {
+    console.log("error", err);
+  }
+});
+
+// add User in Project Route -- End
+
+// get Assigned User in Project Start
+
+router.post("/getAssignUserInProject", async (req, res) => {
+  try {
+    const currentProjectId = req.body.currentProjectId;
+    const currentProject = await Project.findById({ _id: currentProjectId });
+    if (currentProject.assignedUserInProject.length === 0) {
+      return res.json({
+        status: false,
+        message: "unavailable user's in this project",
+      });
+    }
+    res.json({
+      status: true,
+      message: "users",
+      assignedUsers: currentProject.assignedUserInProject,
+    });
+  } catch (err) {
+    console.log("Error", err);
+  }
+});
+
+// get assgined User in project end
+
+// assign user in project start...
+
+router.post("/assignedUserInTask", isLoggedIn, async (req, res) => {
+  try {
+    const { task_id, selectedUserForTask } = req.body;
+    const task = await Task.findById({ _id: task_id });
+    if (
+      task.assignUserInTask.length < 1 ||
+      !task.assignUserInTask.includes(selectedUserForTask)
+    ) {
+      await Task.updateOne(
+        { _id: task_id },
+        {
+          $push: {
+            assignUserInTask: selectedUserForTask,
+          },
+        }
+      );
+      return res.json({
+        status: true,
+        message: "Add user in this task.",
+      });
+    } else {
+      res.json({
+        status: false,
+        message: "User already assigned in this task.",
+      });
+    }
+  } catch (err) {
+    console.log("AssignUserInTask Error: ", err);
+  }
+});
+
+// assign user in task end
 
 module.exports = router;

@@ -21,21 +21,15 @@
           <b-container style="max-width: none !important;">
             <b-row>
               <div class="d-flex">
-                <b-col
-                  class="col kanban-widget"
-                  v-for="(column, index) in project_details.columns"
-                  :key="index"
-                >
+                <b-col class="col kanban-widget" v-for="(column, index) in project_details.columns" :key="index">
                   <!-- Column -->
                   <Column :customization="customization" :column="column" />
                   <!-- End of Column -->
                 </b-col>
               </div>
-              <span
-                class="badge badge-info ml-2"
+              <span class="badge badge-info ml-2"
                 style="height: fit-content;font-size: 20px;margin-top: 10px; cursor:pointer;"
-                @click="createNewColumn()"
-              >
+                @click="createNewColumn()">
                 <i class="fas fa-plus"></i>
               </span>
             </b-row>
@@ -48,42 +42,31 @@
       <transition :name="customization.animations.selected">
         <div class="text-center" style="margin-top: 5%;">
           <b-img src="../../assets/svg/empty.svg" width="500" />
-          <h3
-            class="text-white"
-            style="text-shadow: black 0px 0px 10px;"
-          >Seems like you haven't got any projects</h3>
+          <h3 class="text-white" style="text-shadow: black 0px 0px 10px;">Seems like you haven't got any projects</h3>
           <b-button class="mt-2" variant="success" @click="createProject">Create Now</b-button>
         </div>
       </transition>
     </template>
 
     <!-- Task Context Menu -->
-    <vue-simple-context-menu
-      :elementId="'taskMenu'"
-      :options="options"
-      :ref="'vueTaskContextMenu'"
-      @option-clicked="taskOptionSelected"
-    ></vue-simple-context-menu>
+    <vue-simple-context-menu :elementId="'taskMenu'" :options="options" :ref="'vueTaskContextMenu'"
+      @option-clicked="taskOptionSelected"></vue-simple-context-menu>
     <!-- End Of TaskContext Menu -->
 
     <!-- Column Context Menu -->
-    <vue-simple-context-menu
-      :elementId="'columnMenu'"
-      :options="options"
-      :ref="'vueColumnContextMenu'"
-      @option-clicked="columnOptionSelected"
-    ></vue-simple-context-menu>
+    <vue-simple-context-menu :elementId="'columnMenu'" :options="options" :ref="'vueColumnContextMenu'"
+      @option-clicked="columnOptionSelected"></vue-simple-context-menu>
     <!-- End Of Column Context Menu -->
   </div>
 </template>
 
 <script>
-import Navbar from "./Navbar";
-import Sidebar from "./Sidebar";
-import ProjectSelection from "./ProjectSelection";
-import Column from "./Column";
 import { PerfectScrollbar } from "vue2-perfect-scrollbar";
 import eventBus from "../../eventBus";
+import Column from "./Column";
+import Navbar from "./Navbar";
+import ProjectSelection from "./ProjectSelection";
+import Sidebar from "./Sidebar";
 // import VueContentLoading from "vue-content-loading"; // TODO: implement this
 export default {
   components: {
@@ -124,7 +107,7 @@ export default {
     return {
       projects: {
         selected: {},
-        options: []
+        options: [],
       },
       loaded: false,
       project_details: { title: "", description: "", columns: [] },
@@ -136,7 +119,11 @@ export default {
         {
           name: "Delete",
           slug: "delete"
-        }
+        },
+        {
+          name: 'Assign',
+          slug: 'assign'
+        },
       ],
       customization: {
         theme: {
@@ -269,7 +256,65 @@ export default {
               this.$router.push("/login");
             }
           });
-      } else if (event.option.slug === "clone") {
+      }
+      // aggined users 
+
+      else if (event.option.slug === 'assign') {
+        const task_id = event.item._id
+        const currentProjectId = this.projects.selected._id
+        this.$http
+          .post('/user/getAssignUserInProject', { currentProjectId }).then(res => {
+            if (!res.data.status) {
+              this.$swal({
+                title: res.data.message,
+                position: 'bottom-end',
+                icon: 'warning',
+                showConfirmButton: false,
+                toast: true,
+                timer: 1500,
+              })
+            } else {
+              this.$swal({
+                title: 'Select User For Task.',
+                input: 'select',
+                inputOptions: res.data.assignedUsers,
+                confirmButtonText: 'Confirm',
+                showCancelButton: true,
+              }).then(result => {
+                if (!result.isConfirmed) {
+                  return false
+                }
+                const selectedUserForTask = res.data.assignedUsers[result.value]
+                this.$http.
+                  post('/user/assignedUserInTask', { task_id, selectedUserForTask }).then(res => {
+                    if (!res.data.status) {
+                      this.$swal({
+                        title: res.data.message,
+                        position: 'bottom-end',
+                        icon: 'warning',
+                        toast: true,
+                        showConfirmButton: false,
+                        timer: 1500,
+                      });
+                    } else if (res.data.status) {
+                      this.$swal({
+                        title: res.data.message,
+                        position: 'bottom-end',
+                        icon: 'success',
+                        toast: true,
+                        showConfirmButton: false,
+                        timer: 1500,
+                      });
+                    }
+                  })
+
+              });
+            }
+          })
+      }
+
+
+      else if (event.option.slug === "clone") {
         let { title, expireAt, label, labelType, column_id } = event.item;
         this.$http
           .post("/user/tasks", {
@@ -614,7 +659,215 @@ export default {
   }
 };
 </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <style src="vue2-perfect-scrollbar/dist/vue2-perfect-scrollbar.css"/>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <style src="vue-multiselect/dist/vue-multiselect.min.css"/>
 <style>
 .kanban-widget {
@@ -624,15 +877,18 @@ export default {
   max-width: 40vh;
   min-height: 50vh;
 }
+
 .widget-img img {
   width: 100%;
   max-height: 135px;
   object-fit: contain;
 }
+
 .task {
   display: flex;
   border-radius: 8px;
 }
+
 .task h4 {
   --text-opacity: 1;
   /* color: #4a5568;
@@ -644,6 +900,7 @@ export default {
     "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
     "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
+
 .task p {
   --text-opacity: 1;
   color: #718096;
@@ -653,6 +910,7 @@ export default {
   bottom: -5px;
   left: 20px;
 }
+
 .task span {
   position: absolute;
   bottom: 10px;
@@ -661,17 +919,21 @@ export default {
   border-radius: 9999px !important;
   padding: 0.5em 0.5em !important;
 }
+
 .scroll-area {
   max-height: 80vh;
 }
+
 .ghost {
   opacity: 0.5;
   background: #c8ebfb;
 }
+
 .multiselect__tags {
   background-color: #00ff0000 !important;
   border: none !important;
 }
+
 .multiselect__input,
 .multiselect__single {
   text-shadow: black 0px 0px 10px;
@@ -679,59 +941,82 @@ export default {
   font-size: 25px;
   background-color: #00ff0000 !important;
 }
+
 .multiselect__content-wrapper {
   border: none;
 }
+
 .multiselect__option--highlight {
   background: #2a2d2a;
 }
+
 .multiselect__option--highlight:after {
   background: #2a2d2a;
   border-radius: 2px;
 }
+
 .multiselect__option--selected.multiselect__option--highlight {
   background: black;
   color: #fff;
 }
+
 .multiselect__option--selected.multiselect__option--highlight:after {
   background: black;
   color: #fff;
 }
+
 .slide-fade-enter-active {
   transition: all 0.5s ease;
 }
+
 .slide-fade-leave-active {
   transition: all 0.3s cubic-bezier(1, 0.5, 0.8, 1);
 }
-.slide-fade-enter, .slide-fade-leave-to
-/* .slide-fade-leave-active below version 2.1.8 */ {
+
+.slide-fade-enter,
+.slide-fade-leave-to
+
+/* .slide-fade-leave-active below version 2.1.8 */
+  {
   transform: translateX(10px);
   opacity: 0;
 }
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s;
 }
-.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+
+.fade-enter,
+.fade-leave-to
+
+/* .fade-leave-active below version 2.1.8 */
+  {
   opacity: 0;
 }
+
 .bounce-enter-active {
   animation: bounce-in 0.5s;
 }
+
 .bounce-leave-active {
   animation: bounce-in 0.5s reverse;
 }
+
 @keyframes bounce-in {
   0% {
     transform: scale(0);
   }
+
   50% {
     transform: scale(1.25);
   }
+
   100% {
     transform: scale(1);
   }
 }
+
 body.swal2-height-auto {
   height: 100% !important;
 }

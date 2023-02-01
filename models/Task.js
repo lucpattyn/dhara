@@ -6,6 +6,7 @@ var TaskSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, require: false },
   filePath: { type: Array, require: false },
+  assignUserInTask: { type: Array, require: false },
   expireAt: { type: Date, required: false },
   label: { type: String, required: false },
   labelType: {
