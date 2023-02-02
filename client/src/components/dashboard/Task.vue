@@ -6,20 +6,25 @@
         v-for="(element) in tasks"
         @contextmenu.prevent.stop="e => { element['column_id'] = column_id; taskHandle($event, element) }"
         :key="element._id">
-        <h4 class="card-title">{{ element.title }}</h4>
-        <span style="position: absolute; top: 0px; cursor:pointer;"
-          @click.prevent.stop="e => { element['column_id'] = column_id; taskHandle($event, element) }">
-          <i class="fas fa-ellipsis-h"></i>
-        </span>
-        <p v-if="element.expireAt">
-          <i class="fa fa-clock" />
-          {{ element.expireAt | moment('MMMM D') }}
-        </p>
-        <span :class="`badge badge-${element.labelType}`" style="text-transform:capitalize; font-size: 0.635rem"
-          v-if="element.labelType">
-          <i class="fas fa-circle" />
-          {{ element.label }}
-        </span>
+        <div class="titleAndButton">
+          <h5 class="card-title"> {{ element.title }} </h5>
+          <span style=" top: 0px; cursor:pointer;"
+            @click.prevent.stop="e => { element['column_id'] = column_id; taskHandle($event, element) }">
+            <i class="fas fa-ellipsis-h"></i>
+          </span>
+
+        </div>
+
+        <div class="expireAt">
+          <p style="top:50px" v-if="element.expireAt">
+            <i class="fa fa-clock" />
+            {{ element.expireAt | moment('MMMM D') }}
+          </p>
+        </div>
+
+        <div class="description">
+          <p style="max-height: 100px; overflow-y: scroll;"> {{ element.description }} </p>
+        </div>
       </b-card>
     </draggable>
   </div>
@@ -44,10 +49,11 @@ export default {
   },
   methods: {
     getTaskHeight(element) {
-      if (element.date || element.label) {
-        return "height: 90px";
+
+      if (element.date || element.label || element.description) {
+        return "min-height: 190px";
       } else {
-        return "height: 80px";
+        return "min-height: 80px";
       }
     },
     taskHandle(event, item) {
