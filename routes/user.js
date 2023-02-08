@@ -771,7 +771,7 @@ const storages = multer.diskStorage({
         .split(" ")
         .join("-") +
       "-" +
-      Date.now();
+      Math.floor(Math.random() * 100).toString();
     cb(null, filename + fileExt);
   },
 });

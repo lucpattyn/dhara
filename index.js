@@ -7,6 +7,7 @@ const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const cors = require("cors");
 const history = require("connect-history-api-fallback");
+const path = require("path");
 require("dotenv").config();
 var config = require("./config");
 
@@ -40,10 +41,12 @@ app.use(passport.session());
 
 // Passport Strategies
 const strategies = require("./strategies")(passport);
+// app.use("/api/auth/image", express.static(path.join(__dirname, "uploads")));
 
 // Routes
 const router = new express.Router();
 router.use("/api", require("./routes/api"));
+router.use("/api/auth/image", express.static(path.join(__dirname)));
 app.use(router);
 
 // Middleware for serving '/public' directory
